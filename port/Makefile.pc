@@ -1,0 +1,33 @@
+# Linux build of the recompiled game (SDL2). Run from the repository root:
+#   make -f port/Makefile.pc -j8
+# Needs build/hk-recomp/gen/ (recomp/x86rec.py + recomp/gen_import_stubs.py).
+GEN   ?= build/hk-recomp/gen
+OUT   ?= build/hk-pc
+CC    ?= cc
+SDL_CFLAGS := $(shell pkg-config --cflags sdl2)
+SDL_LIBS   := $(shell pkg-config --libs sdl2)
+CFLAGS ?= -O1 -g
+CFLAGS += -std=gnu11 -Iport/rt -Iport/win32 -Iport -Iport/third_party/tlsf $(SDL_CFLAGS)
+GENFLAGS := -w
+PORTFLAGS := -Wall -Wno-unused-function
+
+GEN_SRC  := $(wildcard $(GEN)/*.c)
+PORT_SRC := $(wildcard port/rt/*.c port/win32/*.c port/hk/*.c port/pc/*.c) port/third_party/tlsf/tlsf.c
+GEN_OBJ  := $(patsubst $(GEN)/%.c,$(OUT)/gen/%.o,$(GEN_SRC))
+PORT_OBJ := $(patsubst port/%.c,$(OUT)/port/%.o,$(PORT_SRC))
+
+$(OUT)/handkerchief: $(GEN_OBJ) $(PORT_OBJ)
+	$(CC) -o $@ $^ $(SDL_LIBS) -lm -lpthread
+
+$(OUT)/gen/%.o: $(GEN)/%.c port/rt/x86rt.h
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(GENFLAGS) -c $< -o $@
+
+PORT_HDR := $(wildcard port/*.h port/rt/*.h port/win32/*.h)
+$(OUT)/port/%.o: port/%.c $(PORT_HDR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(PORTFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(OUT)
+.PHONY: clean
