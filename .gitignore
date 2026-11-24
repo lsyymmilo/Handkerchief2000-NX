@@ -1,0 +1,26 @@
+# game files and everything derived from the commercial executable stay local
+original-data/
+build/
+out/
+
+# recompiler output (generated from your own HDKWIN.EXE)
+recomp/*.pyc
+re/out/
+
+# python
+__pycache__/
+*.pyc
+
+# toolchains / binaries
+*.o
+*.elf
+*.nro
+*.nsp
+*.vpk
+*.zip
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
